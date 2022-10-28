@@ -5,12 +5,14 @@
 #include <vector>
 #include <algorithm>
 #include <conio.h>
+#include <windows.h>
 
 using namespace std;
 
 class RobotSim {
     public:
-        RobotSim(int width, int height, int numGold, bool playerOn):mapWidth(width), mapHeight(height), numGold(numGold) { // constructor
+        // constructor
+        RobotSim(int width, int height, int numGold, double sleepTime, bool playerOn):mapWidth(width), mapHeight(height), numGold(numGold), sleepTime(sleepTime) { 
             this->playerOn = playerOn;
 
             // init map
@@ -70,61 +72,90 @@ class RobotSim {
                     // ask for move
                     do {
                         key = _getch();
-                    } while (key != 'w' && key != 's' && key != 'a' && key != 'd');
-
-                    
-
-                    
+                    } while (key != 'w' && key != 's' && key != 'a' && key != 'd' && key != 'q' && key != 'e' && key != 'z' && key != 'c');
                 }
                 else { // get move from AI
                     
-                    // check each possible square
-                    possibleMove = check_all_next_square();
-                    
+                    Sleep(sleepTime);
 
-                    // randomly select a move
-                    random_shuffle(possibleMove.begin(), possibleMove.end());
-                    key = possibleMove[0];
-                    possibleMove.clear();
+                    // check each possible square
+                    possibleMove = getRobotPossibleMove(robotMoveCounter % 2 == 0);
+                    
+                    if (possibleMove.size() > 0) {
+                        // randomly select a move
+                        random_shuffle(possibleMove.begin(), possibleMove.end());
+                        key = possibleMove[0];
+                        possibleMove.clear();
+                    }
+                    else {
+                        key = '0';
+                    }
+                }
+
+                if (!(key != 'w' && key != 's' && key != 'a' && key != 'd' && key != 'q' && key != 'e' && key != 'z' && key != 'c')) { // if can move
+                    // remove previous position
+                    map[ry][rx] = '-';
+
+                    // apply move
+                    if (key == 'w') {
+                        if (ry > 0)
+                            ry--;
+                    }
+                    else if (key == 's') {
+                        if (ry + 1 < mapHeight)
+                            ry++;
+                    }
+                    else if (key == 'a') {
+                        if (rx > 0)
+                            rx--;
+                    }
+                    else if (key == 'd') {
+                        if (rx + 1 < mapWidth)
+                            rx++;
+                    }
+                    else if (key == 'q') {
+                        if (ry > 0 && rx > 0) {
+                            rx--;
+                            ry--;
+                        }
+                    }
+                    else if (key == 'e') {
+                        if (ry > 0 && (rx + 1 < mapWidth)) {
+                            rx++;
+                            ry--;
+                        }
+                    }
+                    else if (key == 'z') {
+                        if (ry < mapHeight && rx > 0) {
+                            rx--;
+                            ry++;
+                        }
+                    }
+                    else if (key == 'c') {
+                        if (ry < mapHeight && (rx + 1 < mapWidth)) {
+                            rx++;
+                            ry++;
+                        }
+                    }
+
+                    // check for gold
+                    if (check_for_gold()) {
+                        numGoldLeft--;
+                        numGoldCollected++;
+                    }
+
+                    // check for robot step on bomb
+                    else if (check_for_bomb()) {
+                        win = false;
+                        map[ry][rx] = 'X';
+                        break;
+                    }
+
+                    map[ry][rx] = 'R';
+                    robotMoveCounter++;
                 }
 
                 
-                // remove previous position
-                map[ry][rx] = '-';
-
-                // apply move
-                if (key == 'w') {
-                    if (ry > 0)
-                        ry--;
-                }
-                else if (key == 's') {
-                    if (ry + 1 < mapHeight)
-                        ry++;
-                }
-                else if (key == 'a') {
-                    if (rx > 0)
-                        rx--;
-                }
-                else if (key == 'd') {
-                    if (rx + 1 < mapWidth)
-                        rx++;
-                }
-
-                // check for gold
-                if (check_for_gold()) {
-                    numGoldLeft--;
-                    numGoldCollected++;
-                }
-
-                // check for robot step on bomb
-                else if (check_for_bomb()) {
-                    win = false;
-                    map[ry][rx] = 'X';
-                    break;
-                }
-
-                map[ry][rx] = 'R';
-                robotMoveCounter++;
 
                 // bomb move
                 if (robotMoveCounter % 2 == 0) { // only move after every 2 robot moves
@@ -151,6 +182,30 @@ class RobotSim {
                         else if (key == 'd') {
                             if (bx + 1 < mapWidth)
                                 bx++;
+                        }
+                        else if (key == 'q') {
+                            if (by > 0 && bx > 0) {
+                                bx--;
+                                by--;
+                            }
+                        }
+                        else if (key == 'e') {
+                            if (by > 0 && (bx + 1 < mapWidth)) {
+                                bx++;
+                                by--;
+                            }
+                        }
+                        else if (key == 'z') {
+                            if (by < mapHeight && bx > 0) {
+                                bx--;
+                                by++;
+                            }
+                        }
+                        else if (key == 'c') {
+                            if (by < mapHeight && (bx + 1 < mapWidth)) {
+                                bx++;
+                                by++;
+                            }
                         }
 
                         map[by][bx] = 'B';
@@ -184,6 +239,8 @@ class RobotSim {
         }
 
         void printMap() {
+            cout << "Press key wasd to move left, right, up and down." << endl << "Press key qezc to move diagonally." << endl << endl;
+
             for (int i = 0; i < mapHeight; i++) {
                 cout << "|";
                 for (int j = 0; j < mapWidth; j++) {
@@ -198,7 +255,7 @@ class RobotSim {
         }
 
     private:
-        const int mapWidth, mapHeight, numGold;
+        const int mapWidth, mapHeight, numGold, sleepTime;
         vector<vector<char>> map;
         bool playerOn;
 
@@ -206,20 +263,61 @@ class RobotSim {
         int robotMoveCounter;
         int numGoldLeft, numGoldCollected;
 
-        vector<char> check_all_next_square() {
+        vector<char> getRobotPossibleMove(bool even) {
             vector<char> result;
-            if (check_next_square(rx + 1, ry)) {
-                result.push_back('d');
+            int moveValue[4];
+
+            if (even) { // even can move left, right, up, down
+                char movement[4] = { 'd', 'a', 's', 'w' };
+
+                moveValue[0] = check_next_square(rx + 1, ry);
+                moveValue[1] = check_next_square(rx - 1, ry);
+                moveValue[2] = check_next_square(rx, ry + 1);
+                moveValue[3] = check_next_square(rx, ry - 1);
+
+                bool goldMoves = false;
+                for (int i = 0; i < 4; i++) {
+                    if (moveValue[i] == 2) {
+                        goldMoves = true;
+                        result.push_back(movement[i]);
+                    }  
+                }
+                if (goldMoves)
+                    return result;
+                else {
+                    for (int i = 0; i < 4; i++) {
+                        if (moveValue[i] == 1) {
+                            result.push_back(movement[i]);
+                        }
+                    }
+                }
             }
-            if (check_next_square(rx - 1, ry)) {
-                result.push_back('a');
+            else { // odd can move diagonal
+                char movement[4] = { 'q', 'e', 'z', 'c' };
+
+                moveValue[0] = check_next_square(rx - 1, ry - 1);
+                moveValue[1] = check_next_square(rx + 1, ry - 1);
+                moveValue[2] = check_next_square(rx - 1, ry + 1);
+                moveValue[3] = check_next_square(rx + 1, ry + 1);
+
+                bool goldMoves = false;
+                for (int i = 0; i < 4; i++) {
+                    if (moveValue[i] == 2) {
+                        goldMoves = true;
+                        result.push_back(movement[i]);
+                    }
+                }
+                if (goldMoves)
+                    return result;
+                else {
+                    for (int i = 0; i < 4; i++) {
+                        if (moveValue[i] == 1) {
+                            result.push_back(movement[i]);
+                        }
+                    }
+                }
             }
-            if (check_next_square(rx, ry + 1)) {
-                result.push_back('s');
-            }
-            if (check_next_square(rx, ry - 1)) {
-                result.push_back('w');
-            }
+           
             return result;
         }
 
@@ -237,17 +335,30 @@ class RobotSim {
             if (check_next_bomb_moves(bx, by - 1)) {
                 result.push_back('w');
             }
+            if (check_next_bomb_moves(bx - 1, by - 1)) {
+                result.push_back('q');
+            }
+            if (check_next_bomb_moves(bx + 1, by - 1)) {
+                result.push_back('e');
+            }
+            if (check_next_bomb_moves(bx - 1, by + 1)) {
+                result.push_back('z');
+            }
+            if (check_next_bomb_moves(bx + 1, by + 1)) {
+                result.push_back('c');
+            }
             return result;
         }
 
-        bool check_next_square(int x, int y) { // true if possible to move (no bomb, no edge)
+        int check_next_square(int x, int y) { // return 1 if no bomb or edge, return 0 if bomb or edge, return 2 if gold
             if (x < 0 || y < 0 || x == mapWidth || y == mapHeight)
-                return false;
+                return 0;
             if (map[y][x] == 'B')
-                return false;
-            
+                return 0;
+            if (map[y][x] == 'G')
+                return 2;
 
-            return true;
+            return 1;
         }
 
         bool check_next_bomb_moves(int x, int y) { // true if possible to move (no gold, no edge)
@@ -277,6 +388,7 @@ class RobotSim {
         void printStatus() {
             cout << "robotMoveCounter: " << robotMoveCounter << endl;
             cout << "numGoldLeft: " << numGoldLeft << endl;
+            cout << "numGoldCollected: " << numGoldCollected << endl;
         }
 
         friend class TestRobotSim;
@@ -294,7 +406,7 @@ class TestRobotSim{
         }
 
     private: 
-        RobotSim robotsim_test = RobotSim(4, 4, 2, false);
+        RobotSim robotsim_test = RobotSim(4, 4, 2, 0.5,false);
 
         bool test01() { // test when there is gold 
             vector<vector<char>> map = { {'R','G','-','-'},
@@ -303,7 +415,7 @@ class TestRobotSim{
                                          {'-','-','-','-'}, };
             robotsim_test.setMap(map);
 
-            bool expected = true;
+            int expected = 2;
             if (expected != robotsim_test.check_next_square(1, 0)) {
                 return false;
             }
@@ -318,7 +430,7 @@ class TestRobotSim{
                                          {'-','G','-','-'}, };
             robotsim_test.setMap(map);
 
-            bool expected = true;
+            int expected = 1;
             if (expected != robotsim_test.check_next_square(1, 0)) {
                 return false;
             }
@@ -333,7 +445,7 @@ class TestRobotSim{
                                          {'-','-','-','-'}, };
             robotsim_test.setMap(map);
 
-            bool expected = false;
+            int expected = 0;
             if (expected != robotsim_test.check_next_square(1, 0)) {
                 return false;
             }
@@ -373,7 +485,7 @@ class TestRobotSim{
 
 int main()
 {
-    RobotSim robotSim(5, 5, 2, false); // ({int:mapWidth},{int:mapHeight},{int:numGold},{bool:playerOn})
+    RobotSim robotSim(5, 5, 2, 0, false); // ({int:mapWidth},{int:mapHeight},{int:numGold}, {double:timeSleep(in ms)},{bool:playerOn})
     robotSim.start();
 
 

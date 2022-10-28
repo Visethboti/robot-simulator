@@ -1,2 +1,3 @@
 ﻿  CSCI640-RobotSimulator.cpp
+C:\Users\viset\source\repos\CSCI640-RobotSimulator\CSCI640-RobotSimulator\CSCI640-RobotSimulator.cpp(15,150): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
   CSCI640-RobotSimulator.vcxproj -> C:\Users\viset\source\repos\CSCI640-RobotSimulator\x64\Debug\CSCI640-RobotSimulator.exe
