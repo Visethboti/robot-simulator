@@ -36,7 +36,6 @@ class RobotSim {
             // init player
             ry = v1[0];
             rx = v2[0];
-            cout << "r pos   x:" << rx << " y:" << ry << endl;
             map[ry][rx] = 'R'; // R = robot(player) // ry height, rx width
 
             // init bomb
@@ -194,7 +193,9 @@ class RobotSim {
             }
         }
 
-        
+        void setMap(vector<vector<char>> newMap) {
+            map = newMap;
+        }
 
     private:
         const int mapWidth, mapHeight, numGold;
@@ -277,10 +278,106 @@ class RobotSim {
             cout << "robotMoveCounter: " << robotMoveCounter << endl;
             cout << "numGoldLeft: " << numGoldLeft << endl;
         }
+
+        friend class TestRobotSim;
 };
+
+class TestRobotSim{
+    public:
+        TestRobotSim() {} // constructor
+        ~TestRobotSim() {} // destructor
+
+        void testAll() {
+            testOne(1);
+            testOne(2);
+            testOne(3);
+        }
+
+    private: 
+        RobotSim robotsim_test = RobotSim(4, 4, 2, false);
+
+        bool test01() { // test when there is gold 
+            vector<vector<char>> map = { {'R','G','-','-'},
+                                         {'G','-','-','-'},
+                                         {'-','-','B','-'},
+                                         {'-','-','-','-'}, };
+            robotsim_test.setMap(map);
+
+            bool expected = true;
+            if (expected != robotsim_test.check_next_square(1, 0)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        bool test02() { // test when there is nothing 
+            vector<vector<char>> map = { {'R','-','-','G'},
+                                         {'-','-','-','-'},
+                                         {'-','-','B','-'},
+                                         {'-','G','-','-'}, };
+            robotsim_test.setMap(map);
+
+            bool expected = true;
+            if (expected != robotsim_test.check_next_square(1, 0)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        bool test03() { // test when there is bomb
+            vector<vector<char>> map = { {'R','B','-','-'},
+                                         {'B','-','-','-'},
+                                         {'-','-','B','-'},
+                                         {'-','-','-','-'}, };
+            robotsim_test.setMap(map);
+
+            bool expected = false;
+            if (expected != robotsim_test.check_next_square(1, 0)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        void testOne(int num) {
+            if (num <= 0 || num > 5) {
+                cout << "CPassword: Error: invalid test case number." << endl;
+                return;
+            }
+            else {
+                bool result = false;
+                switch (num) {
+                case 1:
+                    result = test01();
+                    break;
+                case 2:
+                    result = test02();
+                    break;
+                case 3:
+                    result = test03();
+                    break;
+                }
+
+                if (result) {
+                    cout << "Test0" << num << ": PASSED." << endl;
+                }
+                else {
+                    cout << "Test0" << num << ": FAILED." << endl;
+                }
+            }
+        }
+};
+
 
 int main()
 {
-    RobotSim robotSim(5, 5, 2, true); // ({int:mapWidth},{int:mapHeight},{int:numGold},{bool:playerOn})
+    RobotSim robotSim(5, 5, 2, false); // ({int:mapWidth},{int:mapHeight},{int:numGold},{bool:playerOn})
     robotSim.start();
+
+
+    // unit testing
+    //TestRobotSim testRobotSim;
+    //testRobotSim.testAll();
 }
