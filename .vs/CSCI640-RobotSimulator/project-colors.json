@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "bbf5de11-1ccf-438f-925b-b28c8313933d": {
+      "ProjectGuid": "bbf5de11-1ccf-438f-925b-b28c8313933d",
+      "DisplayName": "CSCI640-RobotSimulator",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
