@@ -485,11 +485,11 @@ class TestRobotSim{
 
 int main()
 {
-    RobotSim robotSim(5, 5, 2, 0, false); // ({int:mapWidth},{int:mapHeight},{int:numGold}, {double:timeSleep(in ms)},{bool:playerOn})
-    robotSim.start();
+    //RobotSim robotSim(5, 5, 2, 0, false); // ({int:mapWidth},{int:mapHeight},{int:numGold}, {double:timeSleep(in ms)},{bool:playerOn})
+   // robotSim.start();
 
 
     // unit testing
-    //TestRobotSim testRobotSim;
-    //testRobotSim.testAll();
+    TestRobotSim testRobotSim;
+    testRobotSim.testAll();
 }
